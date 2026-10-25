@@ -7,8 +7,8 @@
 
 ## Actividad 1 · Ficha del Juego
 
-
-
+| Campo | Qué debe contener |
+| :--- | :--- |
 | **Título y género** | **Milk Run**. Arcade. |
 | **Descripción** | En *Milk Run*, el jugador controla a un abuelo que debe cruzar una calle caótica dividida en baldosas cambiantes para llegar a la tienda de enfrente (`tienda_final`) y comprar leche antes de que cierre. En cada oleada, las baldosas parpadean en color amarillo como advertencia antes de volverse rojas y letales, obligando al personaje a moverse sin pausa hacia las casillas verdes seguras. El jugador gana si logra pisar la plataforma blanca frente a la tienda antes de que el cronómetro de 50 segundos llegue a cero. Pierde la partida si pisa una baldosa roja activa o si se agota el tiempo, terminando arrestado por la policía. |
 | **Mecánica principal y ciclo de juego** | • Desplazamiento ortogonal paso a paso entre casillas leyendo el patrón de colores del suelo y el sonido de advertencia.<br>• Observar el inicio de la oleada (baldosas en amarillo + sonido de cronómetro) → identificar la casilla verde adyacente garantizada → desplazarse antes del parpadeo final a rojo letal → avanzar fila por fila hasta pisar la meta (`plataforma`) antes de que expire el reloj general (`0:50`). |
