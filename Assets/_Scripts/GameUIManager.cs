@@ -9,65 +9,80 @@ public class GameUIManager : MonoBehaviour
     public GameObject pantallaOpciones;
     public GameObject botonEngranaje;
 
-    [Header("Carteles de Aviso Previo")]
+    [Header("Carteles de Texto (TMP)")]
     public GameObject cartelPolicia;
     public GameObject cartelLlegaste;
+    public GameObject cartelRegresoCasa;
 
-    [Header("Configuración de Tiempos")]
-    public int cantidadParpadeosPolicia = 3;
-    public float velocidadParpadeo = 0.2f;
-    public float duracionCartelLlegaste = 1.5f;
+    [Header("Configuración de Parpadeo")]
+    public int cantidadParpadeos = 3;
+    public float velocidadParpadeo = 0.22f;
+
+    public void MostrarCartelRegresoCasa()
+    {
+        if (cartelRegresoCasa != null)
+        {
+            StopAllCoroutines();
+            StartCoroutine(ParpadearCartel(cartelRegresoCasa));
+        }
+    }
+
+    public IEnumerator ParpadearCartelLlegaste()
+    {
+        yield return StartCoroutine(ParpadearCartel(cartelLlegaste));
+    }
 
     public void MostrarPantallaDerrota()
     {
         if (botonEngranaje != null) botonEngranaje.SetActive(false);
+        if (cartelRegresoCasa != null) cartelRegresoCasa.SetActive(false);
         if (AudioManager.Instance != null) AudioManager.Instance.DetenerMusica();
+        StopAllCoroutines();
         StartCoroutine(SecuenciaDerrota());
     }
 
     public void MostrarPantallaVictoria()
     {
         if (botonEngranaje != null) botonEngranaje.SetActive(false);
+        if (cartelRegresoCasa != null) cartelRegresoCasa.SetActive(false);
         if (AudioManager.Instance != null) AudioManager.Instance.DetenerMusica();
+        StopAllCoroutines();
         StartCoroutine(SecuenciaVictoria());
     }
 
     private IEnumerator SecuenciaDerrota()
     {
-        // ¡SONIDO DE CARTEL DE POLICÍA!
         if (AudioManager.Instance != null) AudioManager.Instance.SonarPolicia();
 
-        if (cartelPolicia != null)
-        {
-            for (int i = 0; i < cantidadParpadeosPolicia; i++)
-            {
-                cartelPolicia.SetActive(true);
-                yield return new WaitForSecondsRealtime(velocidadParpadeo);
-                cartelPolicia.SetActive(false);
-                yield return new WaitForSecondsRealtime(velocidadParpadeo);
-            }
-        }
+        // Parpadea el cartel de "¡OH NO! ¡VIENE LA POLICÍA!"
+        yield return StartCoroutine(ParpadearCartel(cartelPolicia));
 
-        // ¡SONIDO DE PANTALLA DE DERROTA!
         if (AudioManager.Instance != null) AudioManager.Instance.SonarDerrota();
         if (pantallaGameOver != null) pantallaGameOver.SetActive(true);
     }
 
     private IEnumerator SecuenciaVictoria()
     {
-        // ¡SONIDO DE CARTEL LLEGASTE!
         if (AudioManager.Instance != null) AudioManager.Instance.SonarLlegaste();
 
-        if (cartelLlegaste != null)
-        {
-            cartelLlegaste.SetActive(true);
-            yield return new WaitForSecondsRealtime(duracionCartelLlegaste);
-            cartelLlegaste.SetActive(false);
-        }
+        // Parpadea el cartel de "¡LLEGASTE!" antes de abrir la pantalla final
+        yield return StartCoroutine(ParpadearCartel(cartelLlegaste));
 
-        // ¡SONIDO DE PANTALLA DE VICTORIA!
         if (AudioManager.Instance != null) AudioManager.Instance.SonarVictoria();
         if (pantallaVictoria != null) pantallaVictoria.SetActive(true);
+    }
+
+    private IEnumerator ParpadearCartel(GameObject cartel)
+    {
+        if (cartel == null) yield break;
+
+        for (int i = 0; i < cantidadParpadeos; i++)
+        {
+            cartel.SetActive(true);
+            yield return new WaitForSecondsRealtime(velocidadParpadeo);
+            cartel.SetActive(false);
+            yield return new WaitForSecondsRealtime(velocidadParpadeo);
+        }
     }
 
     public void AbrirOpcionesYPausar()
@@ -75,7 +90,7 @@ public class GameUIManager : MonoBehaviour
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.SonarBoton();
-            AudioManager.Instance.PausarEventosLargos(true); // Pausa el sonido amarillo si estaba sonando
+            AudioManager.Instance.PausarEventosLargos(true);
         }
         Time.timeScale = 0f;
         if (botonEngranaje != null) botonEngranaje.SetActive(false);
@@ -87,7 +102,7 @@ public class GameUIManager : MonoBehaviour
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.SonarBoton();
-            AudioManager.Instance.PausarEventosLargos(false); // Reanuda el sonido amarillo
+            AudioManager.Instance.PausarEventosLargos(false);
         }
         Time.timeScale = 1f;
         if (botonEngranaje != null) botonEngranaje.SetActive(true);

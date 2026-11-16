@@ -8,15 +8,18 @@ public class GridManager : MonoBehaviour
     public GameObject baldosaPrefab; 
     public int ancho = 5;
     public int largo = 10;
-    public float tamañoBaldosa = 1.1f; // Asegúrate de que coincida con el Tamaño Baldosa del player en el Inspector
+    public float tamañoBaldosa = 1.1f;
     
     [Header("Referencias")]
     public Transform jugador; 
     public CameraFollow camaraJuego;
 
-    [Header("Tiempos de Oleada")]
-    public float tiempoAdvertencia = 1.0f; // LevelTimer lo baja a 0.7f automáticamente en los últimos 5 segundos
+    [Header("Tiempos y Dificultad")]
+    public float tiempoAdvertencia = 1.0f; 
     public float tiempoLetalRojo = 1.2f;
+    [Range(0.1f, 0.95f)] public float probabilidadTrampa = 0.75f;
+
+    [HideInInspector] public bool jugadorRegresandoConLeche = false;
 
     private TileColorManager[,] matrizDeBaldosas; 
     private int inicioX;
@@ -38,7 +41,6 @@ public class GridManager : MonoBehaviour
             }
         }
         
-        // Guardamos la baldosa inicial como Zona Segura permanente
         inicioX = Mathf.RoundToInt(jugador.position.x / tamañoBaldosa);
         inicioZ = Mathf.RoundToInt(jugador.position.z / tamañoBaldosa);
 
@@ -53,7 +55,7 @@ public class GridManager : MonoBehaviour
         {
             bool[,] vanASerRojas = new bool[ancho, largo];
             
-            int jX = Mathf.RoundToInt(jugador.position.x / tamañoBaldosa);
+            int jX = Mathf.Clamp(Mathf.RoundToInt(jugador.position.x / tamañoBaldosa), 0, ancho - 1);
             int jZ = Mathf.RoundToInt(jugador.position.z / tamañoBaldosa);
 
             // 1. FASE CAÓTICA
@@ -61,7 +63,7 @@ public class GridManager : MonoBehaviour
             {
                 for (int z = 0; z < largo; z++)
                 {
-                    // La primera baldosa siempre es verde
+                    // La casilla inicial es refugio seguro a la ida, y meta segura a la vuelta
                     if (x == inicioX && z == inicioZ)
                     {
                         vanASerRojas[x, z] = false;
@@ -69,7 +71,7 @@ public class GridManager : MonoBehaviour
                         continue; 
                     }
 
-                    if (Random.value < 0.75f) 
+                    if (Random.value < probabilidadTrampa) 
                     {
                         vanASerRojas[x, z] = true;
                         matrizDeBaldosas[x, z].PonerAmarillo();
@@ -83,16 +85,15 @@ public class GridManager : MonoBehaviour
             }
 
             // 2. LA REGLA DE SALVACIÓN
-            if (jX >= 0 && jX < ancho && jZ >= 0 && jZ < largo)
+            if (jZ >= 0 && jZ < largo)
             {
-                if (jX == inicioX && jZ == inicioZ)
+                if (!jugadorRegresandoConLeche && jX == inicioX && jZ == inicioZ)
                 {
                     vanASerRojas[jX, jZ] = false;
                     matrizDeBaldosas[jX, jZ].PonerVerde();
                 }
                 else
                 {
-                    // La baldosa que pisa actualmente se vuelve trampa para obligarlo a moverse
                     vanASerRojas[jX, jZ] = true;
                     matrizDeBaldosas[jX, jZ].PonerAmarillo();
                 }
@@ -100,10 +101,21 @@ public class GridManager : MonoBehaviour
                 int escape = 0;
                 float suerte = Random.value; 
 
-                if (suerte < 0.15f) escape = 0;      // 15% Adelante
-                else if (suerte < 0.40f) escape = 1; // 25% Atrás
-                else if (suerte < 0.70f) escape = 2; // 30% Derecha
-                else escape = 3;                     // 30% Izquierda
+                // Si ya tiene la leche, invertimos la prioridad para ayudarlo a volver hacia Z = 0
+                if (!jugadorRegresandoConLeche)
+                {
+                    if (suerte < 0.15f) escape = 0;      // Adelante
+                    else if (suerte < 0.40f) escape = 1; // Atrás
+                    else if (suerte < 0.70f) escape = 2; // Derecha
+                    else escape = 3;                     // Izquierda
+                }
+                else
+                {
+                    if (suerte < 0.25f) escape = 1;      // Hacia la salida (Z - 1)
+                    else if (suerte < 0.40f) escape = 0; // Hacia la tienda (Z + 1)
+                    else if (suerte < 0.70f) escape = 2; // Derecha
+                    else escape = 3;                     // Izquierda
+                }
                 
                 bool escapeExitoso = false;
 
@@ -120,14 +132,26 @@ public class GridManager : MonoBehaviour
                     else if (jZ + 1 < largo) { vanASerRojas[jX, jZ + 1] = false; matrizDeBaldosas[jX, jZ + 1].PonerVerde(); }
                 }
             }
+            else if (jZ >= largo)
+            {
+                // Si el jugador está parado en la vereda blanca con la leche, abrimos paso en la fila superior para que pueda reingresar
+                vanASerRojas[jX, largo - 1] = false;
+                matrizDeBaldosas[jX, largo - 1].PonerVerde();
+            }
 
-            // ¡SONIDO DE BALDOSA AMARILLA (Empieza una sola vez al inicio de la fase amarilla)!
             if (AudioManager.Instance != null) AudioManager.Instance.SonarAmarillo();
 
-            // 2.5 TRANSICIÓN CON PARPADEO (70% amarillo fijo, 30% parpadeo rápido de alerta)
-            yield return new WaitForSeconds(tiempoAdvertencia * 0.7f);
+            // 2.5 TRANSICIÓN CON PARPADEO + VIBRACIÓN DE ACCESIBILIDAD EN AMARILLO
+            yield return new WaitForSeconds(tiempoAdvertencia * 0.65f);
 
-            float intervaloParpadeo = (tiempoAdvertencia * 0.3f) / 4f;
+            // ¡NUEVO! Vibración preventiva suave durante el último tramo del amarillo
+            float tiempoParpadeoTotal = tiempoAdvertencia * 0.35f;
+            if (CameraFollow.Instance != null)
+            {
+                CameraFollow.Instance.SacudirCamara(tiempoParpadeoTotal, 0.045f, 45f);
+            }
+
+            float intervaloParpadeo = tiempoParpadeoTotal / 4f;
             for (int p = 0; p < 2; p++)
             {
                 CambiarColorTrampas(vanASerRojas, destelloRojo: true);
@@ -136,7 +160,6 @@ public class GridManager : MonoBehaviour
                 yield return new WaitForSeconds(intervaloParpadeo);
             }
 
-            // ¡CORTA EL SONIDO AMARILLO JUSTO AL TERMINAR EL TIEMPO DE ADVERTENCIA!
             if (AudioManager.Instance != null) AudioManager.Instance.DetenerAmarillo();
 
             // 3. FASE LETAL
@@ -148,11 +171,10 @@ public class GridManager : MonoBehaviour
                 }
             }
 
-            // ¡SONIDO DE BALDOSA ROJA LETAL!
             if (AudioManager.Instance != null) AudioManager.Instance.SonarRojo();
 
-            // Sacudida sutil de cámara cuando las trampas se activan
-            if (camaraJuego != null) camaraJuego.SacudirCamara(0.12f, 0.08f);
+            // Pulso muy sutil al activarse el rojo
+            if (CameraFollow.Instance != null) CameraFollow.Instance.SacudirCamara(0.1f, 0.03f, 25f);
 
             yield return new WaitForSeconds(tiempoLetalRojo); 
         }
