@@ -708,10 +708,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f27ab916e49286a4893843d444162945, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tiempoRestante: 30
   segundoDePanico: 10
-  tiempoAdvertenciaNormal: 1
-  tiempoAdvertenciaPanico: 0.7
+  tiempoRestante: 40
+  tiempoAdvertenciaNormal: 4
+  tiempoAdvertenciaPanico: 3
   textoReloj: {fileID: 424333490}
   imagenReloj: {fileID: 1233648579}
   relojAzul: {fileID: 21300000, guid: 4973ad4d292c1454faf64085947c18ff, type: 3}
@@ -738,6 +738,7 @@ MonoBehaviour:
   levelTimer: {fileID: 380737164}
   textoEtapaHUD: {fileID: 722107089}
   cartelAnuncioInicio: {fileID: 1492681421}
+  duracionAnuncioInicio: 4
   objetosTienda:
   - {fileID: 1656147814}
   - {fileID: 407392502}
@@ -750,7 +751,7 @@ MonoBehaviour:
     tiempoInicialReloj: 50
     segundosExtraAlRegresar: 0
     tiempoAmarilloNormal: 1.2
-    tiempoAmarilloPanico: 0.85
+    tiempoAmarilloPanico: 0.5
     tiempoRojoLetal: 1.2
     probabilidadTrampa: 0.7
   - textoHUD: NIVEL 2/3
@@ -760,7 +761,7 @@ MonoBehaviour:
     tiempoInicialReloj: 45
     segundosExtraAlRegresar: 25
     tiempoAmarilloNormal: 1
-    tiempoAmarilloPanico: 0.7
+    tiempoAmarilloPanico: 0.5
     tiempoRojoLetal: 1.2
     probabilidadTrampa: 0.75
   - textoHUD: NIVEL 3/3
@@ -769,8 +770,8 @@ MonoBehaviour:
     largoFilas: 12
     tiempoInicialReloj: 40
     segundosExtraAlRegresar: 25
-    tiempoAmarilloNormal: 0.85
-    tiempoAmarilloPanico: 0.65
+    tiempoAmarilloNormal: 0.9
+    tiempoAmarilloPanico: 0.25
     tiempoRojoLetal: 1
     probabilidadTrampa: 0.85
 --- !u!1 &386420380

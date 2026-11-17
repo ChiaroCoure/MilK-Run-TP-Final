@@ -4,13 +4,14 @@ using TMPro;
 
 public class LevelTimer : MonoBehaviour
 {
-    [Header("Configuración de Tiempo")]
-    public float tiempoRestante = 50f;
+    [Header("Configuración de Pánico")]
+    [Tooltip("A cuántos segundos del final se pone el reloj rojo y se aceleran las baldosas")]
     public float segundoDePanico = 5f;
 
-    [Header("Velocidades de Advertencia")]
-    public float tiempoAdvertenciaNormal = 1.0f;
-    public float tiempoAdvertenciaPanico = 0.7f;
+    // Se ocultan en el Inspector para evitar confusiones, ya que los controla LevelProgressionManager
+    [HideInInspector] public float tiempoRestante = 50f;
+    [HideInInspector] public float tiempoAdvertenciaNormal = 1.0f;
+    [HideInInspector] public float tiempoAdvertenciaPanico = 0.7f;
 
     [Header("Elementos Visuales (UI)")]
     public TMP_Text textoReloj;
@@ -20,12 +21,18 @@ public class LevelTimer : MonoBehaviour
     public Color colorBordeNormal = new Color(0.45f, 0.55f, 0.85f, 1f);
     public Color colorBordePanico = new Color(0.8f, 0.35f, 0.35f, 1f);
 
-    [Header("Conexiones del Juego")]
+    [Header("Conexiones del Juego (Se autoconectan si quedan vacías)")]
     public GridManager gridManager;
     public PlayerSensor playerSensor;
 
     private bool cronometroActivo = true;
     private bool modoPanicoActivado = false;
+
+    void Awake()
+    {
+        if (gridManager == null) gridManager = FindFirstObjectByType<GridManager>();
+        if (playerSensor == null) playerSensor = FindFirstObjectByType<PlayerSensor>();
+    }
 
     void Start()
     {
@@ -40,12 +47,12 @@ public class LevelTimer : MonoBehaviour
         ActualizarTextoUI();
     }
 
-    // Llamado automáticamente por LevelProgressionManager al iniciar cada nivel
     public void ConfigurarRelojNivel(float tiempoInicial, float advNormal, float advPanico)
     {
         tiempoRestante = tiempoInicial;
         tiempoAdvertenciaNormal = advNormal;
         tiempoAdvertenciaPanico = advPanico;
+        modoPanicoActivado = false;
         ActualizarTextoUI();
     }
 

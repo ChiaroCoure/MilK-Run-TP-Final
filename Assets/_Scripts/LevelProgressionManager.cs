@@ -25,25 +25,24 @@ public class ConfiguracionNivel
 
 public class LevelProgressionManager : MonoBehaviour
 {
-    public static int NivelActual = 1; // 1, 2 o 3
+    public static int NivelActual = 1;
 
-    [Header("Referencias del Juego")]
+    [Header("Referencias del Juego (Se autoconectan si quedan vacías)")]
     public GridManager gridManager;
     public PlayerGridMovement movimientoJugador;
     public PlayerSensor playerSensor;
     public LevelTimer levelTimer;
 
     [Header("Textos de Nivel en Pantalla (TMP)")]
-    [Tooltip("Texto fijo arriba en la pantalla que dice NIVEL 1/3")]
     public TMP_Text textoEtapaHUD;
-    [Tooltip("Cartel central que parpadea al empezar el nivel")]
     public TMP_Text cartelAnuncioInicio;
+    public float duracionAnuncioInicio = 2.0f;
 
     [Header("Objetos de la Meta (Solo plataforma y tienda_final)")]
     public Transform[] objetosTienda;
     public int largoBaseEscena = 10;
 
-    [Header("Parámetros por Nivel (Editables en Inspector)")]
+    [Header("EDITA AQUÍ LOS TIEMPOS Y VELOCIDADES DE CADA NIVEL")]
     public ConfiguracionNivel[] niveles = new ConfiguracionNivel[3]
     {
         new ConfiguracionNivel {
@@ -86,6 +85,14 @@ public class LevelProgressionManager : MonoBehaviour
 
     void Awake()
     {
+        Application.targetFrameRate = 60;
+
+        // Autoconexión de seguridad por si faltó arrastrar alguno en el Inspector
+        if (gridManager == null) gridManager = FindFirstObjectByType<GridManager>();
+        if (movimientoJugador == null) movimientoJugador = FindFirstObjectByType<PlayerGridMovement>();
+        if (playerSensor == null) playerSensor = FindFirstObjectByType<PlayerSensor>();
+        if (levelTimer == null) levelTimer = FindFirstObjectByType<LevelTimer>();
+
         if (niveles == null || niveles.Length == 0) return;
 
         int indice = Mathf.Clamp(NivelActual - 1, 0, niveles.Length - 1);
@@ -94,13 +101,8 @@ public class LevelProgressionManager : MonoBehaviour
 
     private void AplicarConfiguracion(ConfiguracionNivel config)
     {
-        // 1. Actualiza el texto fijo del HUD ("NIVEL 1/3")
-        if (textoEtapaHUD != null)
-        {
-            textoEtapaHUD.text = config.textoHUD;
-        }
+        if (textoEtapaHUD != null) textoEtapaHUD.text = config.textoHUD;
 
-        // 2. Configura largo y velocidades en GridManager
         if (gridManager != null)
         {
             gridManager.largo = config.largoFilas;
@@ -109,20 +111,17 @@ public class LevelProgressionManager : MonoBehaviour
             gridManager.probabilidadTrampa = config.probabilidadTrampa;
         }
 
-        // 3. Configura el límite de pasos hacia adelante del abuelo
         if (movimientoJugador != null)
         {
             movimientoJugador.filasLargo = config.largoFilas;
         }
 
-        // 4. Configura si hay que volver con la leche y cuánto tiempo suma
         if (playerSensor != null)
         {
             playerSensor.requiereIdaYVuelta = config.esIdaYVuelta;
             playerSensor.segundosExtraAlAgarrarLeche = config.segundosExtraAlRegresar;
         }
 
-        // 5. Configura el cronómetro del nivel
         if (levelTimer != null)
         {
             levelTimer.ConfigurarRelojNivel(
@@ -132,10 +131,8 @@ public class LevelProgressionManager : MonoBehaviour
             );
         }
 
-        // 6. Acomoda la tienda y la vereda blanca al final de las baldosas
         AjustarPosicionTienda(config.largoFilas);
 
-        // 7. Muestra el cartel anunciando la misión del nivel al empezar
         if (cartelAnuncioInicio != null)
         {
             StartCoroutine(MostrarAnuncioDeNivel(config.cartelAnuncioInicial));
@@ -145,14 +142,9 @@ public class LevelProgressionManager : MonoBehaviour
     private IEnumerator MostrarAnuncioDeNivel(string mensaje)
     {
         cartelAnuncioInicio.text = mensaje;
-
-        for (int i = 0; i < 3; i++)
-        {
-            cartelAnuncioInicio.gameObject.SetActive(true);
-            yield return new WaitForSecondsRealtime(0.22f);
-            cartelAnuncioInicio.gameObject.SetActive(false);
-            yield return new WaitForSecondsRealtime(0.18f);
-        }
+        cartelAnuncioInicio.gameObject.SetActive(true);
+        yield return new WaitForSecondsRealtime(duracionAnuncioInicio);
+        cartelAnuncioInicio.gameObject.SetActive(false);
     }
 
     private void AjustarPosicionTienda(int nuevoLargo)
