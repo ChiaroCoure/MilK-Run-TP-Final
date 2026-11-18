@@ -163,4 +163,19 @@ public class GameUIManager : MonoBehaviour
         if (botonEngranaje != null) botonEngranaje.SetActive(true);
         if (pantallaOpciones != null) pantallaOpciones.SetActive(false);
     }
+
+    // Pausa automáticamente en celular si la app pasa a segundo plano
+    void OnApplicationPause(bool enPausa)
+    {
+        if (enPausa && pantallaOpciones != null && botonEngranaje != null)
+        {
+            bool finDePartidaActivo = (pantallaGameOver != null && pantallaGameOver.activeSelf) ||
+                                      (pantallaVictoria != null && pantallaVictoria.activeSelf);
+
+            if (!finDePartidaActivo && Time.timeScale > 0f)
+            {
+                AbrirOpcionesYPausar();
+            }
+        }
+    }
 }

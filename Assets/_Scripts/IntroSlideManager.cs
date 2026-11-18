@@ -9,7 +9,7 @@ public class IntroSlideManager : MonoBehaviour
     public Sprite[] paginasHistoria;
 
     [Header("Configuración de Escena")]
-    public string nombreEscenaJuego = "SampleScene";
+    public string nombreEscenaJuego = "GameplayScene";
 
     private int indicePaginaActual = 0;
 
@@ -25,7 +25,11 @@ public class IntroSlideManager : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
+        // Funciona con teclado en PC y con toque en pantalla (o clic) en celular
+        bool avanzoTeclado = Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow);
+        bool avanzoToque = Input.GetMouseButtonDown(0);
+
+        if (avanzoTeclado || avanzoToque)
         {
             AvanzarPagina();
         }
@@ -33,7 +37,6 @@ public class IntroSlideManager : MonoBehaviour
 
     public void AvanzarPagina()
     {
-        // ¡SONIDO DE PASAR PÁGINA!
         if (AudioManager.Instance != null) AudioManager.Instance.SonarPagina();
 
         indicePaginaActual++;

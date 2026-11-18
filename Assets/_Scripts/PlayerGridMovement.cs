@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class PlayerGridMovement : MonoBehaviour
 {
@@ -11,20 +12,32 @@ public class PlayerGridMovement : MonoBehaviour
     public int columnasAncho = 5;
     public int filasLargo = 10;
 
+    [Header("Controles Táctiles (Móvil)")]
+    [Tooltip("Distancia mínima en píxeles para detectar un deslizamiento del dedo")]
+    public float distanciaMinimaSwipe = 40f;
+    [Tooltip("Arrastra aquí el objeto 3D 'cartel' (WASD) si quieres que se oculte en Android")]
+    public GameObject cartelWASD3D;
+
     [HideInInspector] public bool puedeMoverse = true;
     
     private Animator animator;
     private bool seEstaMoviendo = false;
     private Vector3 posicionObjetivo;
 
-    // ¡NUEVO! Permite que el sensor lea la casilla lógica actual (o de destino)
-    // ignorando el borde de la baldosa que el abuelo está dejando atrás.
+    private Vector2 puntoInicioToque;
+    private bool detectandoSwipe = false;
+
     public Vector3 CasillaActual => posicionObjetivo;
 
     void Awake()
     {
-        // Lo inicializamos en Awake para que esté listo antes de que empiece el sensor
         posicionObjetivo = transform.position;
+
+        // Si corre en un teléfono Android o iOS, oculta el cartel de madera WASD
+        if (Application.isMobilePlatform && cartelWASD3D != null)
+        {
+            cartelWASD3D.SetActive(false);
+        }
     }
 
     void Start()
@@ -37,6 +50,7 @@ public class PlayerGridMovement : MonoBehaviour
         if (!puedeMoverse || Time.timeScale == 0f) return; 
         if (seEstaMoviendo) return;
 
+        // 1. Entrada de Teclado (PC)
         float inputX = Input.GetAxisRaw("Horizontal");
         float inputZ = Input.GetAxisRaw("Vertical");
 
@@ -44,14 +58,59 @@ public class PlayerGridMovement : MonoBehaviour
 
         if (inputX != 0 || inputZ != 0)
         {
-            Vector3 direccionMovimiento = new Vector3(inputX, 0, inputZ);
-            Vector3 futuroDestino = transform.position + (direccionMovimiento * tamañoBaldosa);
+            IntentarMover(new Vector3(inputX, 0, inputZ));
+            return;
+        }
 
-            if (EsPosicionValida(futuroDestino))
+        // 2. Entrada Táctil por Gestos Swipe (Móvil)
+        DetectarSwipe();
+    }
+
+    private void DetectarSwipe()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            // Ignora el toque si el jugador está tocando el botón de pausa o un menú
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
+
+            puntoInicioToque = Input.mousePosition;
+            detectandoSwipe = true;
+        }
+        else if (Input.GetMouseButtonUp(0) && detectandoSwipe)
+        {
+            detectandoSwipe = false;
+            Vector2 delta = (Vector2)Input.mousePosition - puntoInicioToque;
+
+            if (delta.magnitude >= distanciaMinimaSwipe)
             {
-                posicionObjetivo = futuroDestino;
-                StartCoroutine(MoverA(posicionObjetivo, direccionMovimiento));
+                if (Mathf.Abs(delta.x) > Mathf.Abs(delta.y))
+                {
+                    IntentarMover(new Vector3(Mathf.Sign(delta.x), 0, 0));
+                }
+                else
+                {
+                    IntentarMover(new Vector3(0, 0, Mathf.Sign(delta.y)));
+                }
             }
+        }
+    }
+
+    // 3. Funciones Públicas para Botones de Cruceta Virtual (D-Pad en Canvas)
+    public void MoverArriba() { IntentarMover(Vector3.forward); }
+    public void MoverAbajo() { IntentarMover(Vector3.back); }
+    public void MoverDerecha() { IntentarMover(Vector3.right); }
+    public void MoverIzquierda() { IntentarMover(Vector3.left); }
+
+    public void IntentarMover(Vector3 direccionMovimiento)
+    {
+        if (!puedeMoverse || Time.timeScale == 0f || seEstaMoviendo) return;
+
+        Vector3 futuroDestino = transform.position + (direccionMovimiento * tamañoBaldosa);
+
+        if (EsPosicionValida(futuroDestino))
+        {
+            posicionObjetivo = futuroDestino;
+            StartCoroutine(MoverA(posicionObjetivo, direccionMovimiento));
         }
     }
 
