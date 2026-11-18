@@ -662,7 +662,7 @@ MonoBehaviour:
   popupSonido: {fileID: 1699910647}
   popupConfirmarSalida: {fileID: 1022820887}
   sliderMusica: {fileID: 484028697}
-  sliderEfectos: {fileID: 0}
+  sliderEfectos: {fileID: 201784504}
   cartelPolicia: {fileID: 1270850902}
   cartelLlegaste: {fileID: 441810636}
   cartelRegresoCasa: {fileID: 901359746}

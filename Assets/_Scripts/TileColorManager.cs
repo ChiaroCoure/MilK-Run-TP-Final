@@ -7,7 +7,9 @@ public class TileColorManager : MonoBehaviour
     public Material mat_baldosa_roja;
 
     private MeshRenderer meshRenderer;
-    public bool esLetal = false; 
+    
+    public bool esLetal = false;
+    public bool esAdvertencia = false; // Indica si la baldosa está amarilla
 
     void Awake()
     {
@@ -18,24 +20,27 @@ public class TileColorManager : MonoBehaviour
     { 
         meshRenderer.material = mat_baldosa_verde; 
         esLetal = false; 
+        esAdvertencia = false;
     }
     
     public void PonerAmarillo() 
     { 
         meshRenderer.material = mat_baldosa_amarillo; 
         esLetal = false; 
+        esAdvertencia = true;
     }
 
-    // Muestra un destello rojo de advertencia, pero AÚN NO MATA (esLetal sigue false)
     public void PonerDestelloAdvertencia()
     {
         meshRenderer.material = mat_baldosa_roja;
         esLetal = false;
+        esAdvertencia = true;
     }
     
     public void PonerRojo() 
     { 
         meshRenderer.material = mat_baldosa_roja; 
-        esLetal = true; // Aquí sí mata al jugador
+        esLetal = true; 
+        esAdvertencia = false;
     }
 }

@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class PlayerGridMovement : MonoBehaviour
 {
@@ -12,10 +11,8 @@ public class PlayerGridMovement : MonoBehaviour
     public int columnasAncho = 5;
     public int filasLargo = 10;
 
-    [Header("Controles Táctiles (Móvil)")]
-    [Tooltip("Distancia mínima en píxeles para detectar un deslizamiento del dedo")]
-    public float distanciaMinimaSwipe = 40f;
-    [Tooltip("Arrastra aquí el objeto 3D 'cartel' (WASD) si quieres que se oculte en Android")]
+    [Header("Ajustes Móviles")]
+    [Tooltip("Arrastra aquí el objeto 3D 'cartel' (WASD) para que se oculte automáticamente en Android")]
     public GameObject cartelWASD3D;
 
     [HideInInspector] public bool puedeMoverse = true;
@@ -24,16 +21,13 @@ public class PlayerGridMovement : MonoBehaviour
     private bool seEstaMoviendo = false;
     private Vector3 posicionObjetivo;
 
-    private Vector2 puntoInicioToque;
-    private bool detectandoSwipe = false;
-
     public Vector3 CasillaActual => posicionObjetivo;
 
     void Awake()
     {
         posicionObjetivo = transform.position;
 
-        // Si corre en un teléfono Android o iOS, oculta el cartel de madera WASD
+        // Oculta el cartel 3D de madera WASD cuando corre en un teléfono
         if (Application.isMobilePlatform && cartelWASD3D != null)
         {
             cartelWASD3D.SetActive(false);
@@ -50,7 +44,7 @@ public class PlayerGridMovement : MonoBehaviour
         if (!puedeMoverse || Time.timeScale == 0f) return; 
         if (seEstaMoviendo) return;
 
-        // 1. Entrada de Teclado (PC)
+        // Entrada de Teclado (Para versión base de PC y pruebas en Editor)
         float inputX = Input.GetAxisRaw("Horizontal");
         float inputZ = Input.GetAxisRaw("Vertical");
 
@@ -59,43 +53,10 @@ public class PlayerGridMovement : MonoBehaviour
         if (inputX != 0 || inputZ != 0)
         {
             IntentarMover(new Vector3(inputX, 0, inputZ));
-            return;
-        }
-
-        // 2. Entrada Táctil por Gestos Swipe (Móvil)
-        DetectarSwipe();
-    }
-
-    private void DetectarSwipe()
-    {
-        if (Input.GetMouseButtonDown(0))
-        {
-            // Ignora el toque si el jugador está tocando el botón de pausa o un menú
-            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
-
-            puntoInicioToque = Input.mousePosition;
-            detectandoSwipe = true;
-        }
-        else if (Input.GetMouseButtonUp(0) && detectandoSwipe)
-        {
-            detectandoSwipe = false;
-            Vector2 delta = (Vector2)Input.mousePosition - puntoInicioToque;
-
-            if (delta.magnitude >= distanciaMinimaSwipe)
-            {
-                if (Mathf.Abs(delta.x) > Mathf.Abs(delta.y))
-                {
-                    IntentarMover(new Vector3(Mathf.Sign(delta.x), 0, 0));
-                }
-                else
-                {
-                    IntentarMover(new Vector3(0, 0, Mathf.Sign(delta.y)));
-                }
-            }
         }
     }
 
-    // 3. Funciones Públicas para Botones de Cruceta Virtual (D-Pad en Canvas)
+    // Funciones Públicas para los 4 Botones de Dirección en Pantalla (Conectar con Event Trigger -> Pointer Down)
     public void MoverArriba() { IntentarMover(Vector3.forward); }
     public void MoverAbajo() { IntentarMover(Vector3.back); }
     public void MoverDerecha() { IntentarMover(Vector3.right); }
