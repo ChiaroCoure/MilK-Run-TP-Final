@@ -759,7 +759,7 @@ MonoBehaviour:
     esIdaYVuelta: 1
     largoFilas: 10
     tiempoInicialReloj: 45
-    segundosExtraAlRegresar: 25
+    segundosExtraAlRegresar: 30
     tiempoAmarilloNormal: 1.4
     tiempoAmarilloPanico: 0.7
     tiempoRojoLetal: 1.2
@@ -769,7 +769,7 @@ MonoBehaviour:
     esIdaYVuelta: 1
     largoFilas: 12
     tiempoInicialReloj: 40
-    segundosExtraAlRegresar: 25
+    segundosExtraAlRegresar: 30
     tiempoAmarilloNormal: 1.2
     tiempoAmarilloPanico: 0.5
     tiempoRojoLetal: 1
@@ -5484,8 +5484,8 @@ MonoBehaviour:
   uiManager: {fileID: 380737161}
   movimientoJugador: {fileID: 2057835276}
   gridManager: {fileID: 938308962}
-  levelTimer: {fileID: 0}
-  camaraJuego: {fileID: 0}
+  levelTimer: {fileID: 380737164}
+  camaraJuego: {fileID: 963194229}
   indicadorPeligroCabeza: {fileID: 452659583}
   cartonLecheCabeza: {fileID: 2005337971}
   requiereIdaYVuelta: 0
