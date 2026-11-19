@@ -760,18 +760,18 @@ MonoBehaviour:
     largoFilas: 10
     tiempoInicialReloj: 45
     segundosExtraAlRegresar: 30
-    tiempoAmarilloNormal: 1.4
-    tiempoAmarilloPanico: 0.7
+    tiempoAmarilloNormal: 1.5
+    tiempoAmarilloPanico: 1
     tiempoRojoLetal: 1.2
     probabilidadTrampa: 0.75
   - textoHUD: NIVEL 3/3
     cartelAnuncioInicial: "\xA1NIVEL 3: HORA PICO EXTREMA!"
     esIdaYVuelta: 1
     largoFilas: 12
-    tiempoInicialReloj: 40
+    tiempoInicialReloj: 55
     segundosExtraAlRegresar: 30
     tiempoAmarilloNormal: 1.2
-    tiempoAmarilloPanico: 0.5
+    tiempoAmarilloPanico: 0.85
     tiempoRojoLetal: 1
     probabilidadTrampa: 0.85
 --- !u!1 &386420380
