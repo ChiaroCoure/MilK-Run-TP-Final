@@ -7,8 +7,12 @@ public class AudioManager : MonoBehaviour
 
     [Header("Canales de Reproducción (AudioSources)")]
     public AudioSource fuenteMusica;
-    public AudioSource fuenteSFX;          // Intocable: Botones, Páginas, Pasos, Rojo
-    public AudioSource fuenteSFX_Amarillo; // Interrumpible: Amarillo, Policía, Derrota, Llegaste, Victoria
+    public AudioSource fuenteSFX;          // Cortos: Botones, Páginas, Pasos, Rojo
+    public AudioSource fuenteSFX_Amarillo; // Largos: Amarillo, Policía, Derrota, Llegaste, Victoria
+
+    [Header("Volúmenes Actuales (0 a 1)")]
+    [Range(0f, 1f)] public float volumenMusica = 0.5f;
+    [Range(0f, 1f)] public float volumenEfectos = 1.0f;
 
     [Header("1. Músicas de Fondo")]
     public AudioClip musicaMenuEIntro;
@@ -39,6 +43,7 @@ public class AudioManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            AplicarVolumenes();
         }
         else
         {
@@ -52,9 +57,8 @@ public class AudioManager : MonoBehaviour
 
     private void AlCargarEscena(Scene escena, LoadSceneMode modo)
     {
-        // SOLO cortamos el canal de eventos largos (Victoria, Derrota, Amarillo).
-        // fuenteSFX queda libre para que los botones y páginas suenen completos al cambiar de escena.
         if (fuenteSFX_Amarillo != null) fuenteSFX_Amarillo.Stop();
+        AplicarVolumenes();
 
         if (escena.name == nombreEscenaMenu || escena.name == nombreEscenaIntro)
         {
@@ -66,6 +70,27 @@ public class AudioManager : MonoBehaviour
         }
     }
 
+    // --- CONTROL DE VOLUMEN PARA LOS SLIDERS ---
+    public void CambiarVolumenMusica(float nuevoVolumen)
+    {
+        volumenMusica = nuevoVolumen;
+        if (fuenteMusica != null) fuenteMusica.volume = volumenMusica;
+    }
+
+    public void CambiarVolumenEfectos(float nuevoVolumen)
+    {
+        volumenEfectos = nuevoVolumen;
+        if (fuenteSFX != null) fuenteSFX.volume = volumenEfectos;
+        if (fuenteSFX_Amarillo != null) fuenteSFX_Amarillo.volume = volumenEfectos;
+    }
+
+    private void AplicarVolumenes()
+    {
+        if (fuenteMusica != null) fuenteMusica.volume = volumenMusica;
+        if (fuenteSFX != null) fuenteSFX.volume = volumenEfectos;
+        if (fuenteSFX_Amarillo != null) fuenteSFX_Amarillo.volume = volumenEfectos;
+    }
+
     public void ReproducirMusica(AudioClip nuevaMusica)
     {
         if (fuenteMusica == null || nuevaMusica == null) return;
@@ -73,6 +98,7 @@ public class AudioManager : MonoBehaviour
 
         fuenteMusica.clip = nuevaMusica;
         fuenteMusica.loop = true;
+        fuenteMusica.volume = volumenMusica;
         fuenteMusica.Play();
     }
 
@@ -81,7 +107,7 @@ public class AudioManager : MonoBehaviour
         if (fuenteMusica != null) fuenteMusica.Stop();
     }
 
-    // --- CANAL 1 DE EFECTOS: CORTOS E INTOCABLES (PlayOneShot) ---
+    // --- CANAL 1: CORTOS E INTOCABLES ---
     public void SonarPaso() { ReproducirSFX(sfxPasoJugador); }
     public void SonarRojo() { ReproducirSFX(sfxBaldosaRoja); }
     public void SonarBoton() { ReproducirSFX(sfxBotonClick); }
@@ -95,7 +121,7 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    // --- CANAL 2 DE EFECTOS: LARGOS E INTERRUMPIBLES ---
+    // --- CANAL 2: LARGOS E INTERRUMPIBLES ---
     public void SonarAmarillo() { ReproducirEventoLargo(sfxBaldosaAmarilla); }
     public void SonarPolicia() { ReproducirEventoLargo(sfxCartelPolicia); }
     public void SonarDerrota() { ReproducirEventoLargo(sfxPantallaDerrota); }
@@ -106,8 +132,9 @@ public class AudioManager : MonoBehaviour
     {
         if (fuenteSFX_Amarillo != null && clip != null)
         {
-            fuenteSFX_Amarillo.Stop(); // Corta el evento anterior (ej. calla el amarillo al sonar la policía)
+            fuenteSFX_Amarillo.Stop();
             fuenteSFX_Amarillo.clip = clip;
+            fuenteSFX_Amarillo.volume = volumenEfectos;
             fuenteSFX_Amarillo.Play();
         }
     }
@@ -117,7 +144,6 @@ public class AudioManager : MonoBehaviour
         if (fuenteSFX_Amarillo != null) fuenteSFX_Amarillo.Stop();
     }
 
-    // Evita que el cronómetro amarillo siga sonando mientras estás en el menú de pausa
     public void PausarEventosLargos(bool pausar)
     {
         if (fuenteSFX_Amarillo == null) return;
